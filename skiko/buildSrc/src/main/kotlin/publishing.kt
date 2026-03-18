@@ -89,6 +89,14 @@ private fun SkikoPublishingContext.configurePublishingRepositories() {
                     password = skiko.composeRepoKey
                 }
             }
+            maven {
+                name = "FrstCloud"
+                url = project.uri("https://pkg.frst.cloud/releases/")
+                credentials {
+                    username = project.findProperty("frstUsername") as String? ?: ""
+                    password = project.findProperty("frstPassword") as String? ?: ""
+                }
+            }
         }
     }
 }

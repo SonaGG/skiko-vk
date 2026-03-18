@@ -37,6 +37,36 @@ class BackendTexture internal constructor(ptr: NativePointer) : Managed(ptr, _Fi
             return BackendTexture(ptr)
         }
 
+        /**
+         * Creates BackendTexture from a Vulkan image.
+         *
+         * @param width           width of the texture in pixels
+         * @param height          height of the texture in pixels
+         * @param isMipmapped     whether the texture has mipmaps
+         * @param imagePtr        pointer to VkImage handle
+         * @param imageTiling     VkImageTiling enum value
+         * @param imageLayout     VkImageLayout enum value
+         * @param format          VkFormat enum value
+         * @param imageUsageFlags VkImageUsageFlags bitmask
+         * @param sampleCnt       sample count
+         * @param levelCnt        mip level count
+         */
+        fun makeVulkan(
+            width: Int,
+            height: Int,
+            isMipmapped: Boolean,
+            imagePtr: NativePointer,
+            imageTiling: Int,
+            imageLayout: Int,
+            format: Int,
+            imageUsageFlags: Int,
+            sampleCnt: Int,
+            levelCnt: Int
+        ): BackendTexture {
+            Stats.onNativeCall()
+            return BackendTexture(_nMakeVulkan(width, height, isMipmapped, imagePtr, imageTiling, imageLayout, format, imageUsageFlags, sampleCnt, levelCnt))
+        }
+
         init {
             staticLoad()
         }
@@ -74,3 +104,17 @@ private external fun _nMakeGL(
 
 @ExternalSymbolName("org_jetbrains_skia_BackendTexture__1nGLTextureParametersModified")
 private external fun _nGLTextureParametersModified(backendTexturePtr: NativePointer)
+
+@ExternalSymbolName("org_jetbrains_skia_BackendTexture__1nMakeVulkan")
+private external fun _nMakeVulkan(
+    width: Int,
+    height: Int,
+    isMipmapped: Boolean,
+    imagePtr: NativePointer,
+    imageTiling: Int,
+    imageLayout: Int,
+    format: Int,
+    imageUsageFlags: Int,
+    sampleCnt: Int,
+    levelCnt: Int
+): NativePointer

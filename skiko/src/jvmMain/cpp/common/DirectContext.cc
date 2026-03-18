@@ -47,7 +47,40 @@ extern "C" JNIEXPORT jlong JNICALL Java_org_jetbrains_skia_DirectContextKt__1nMa
     sk_sp<GrDirectContext> instance = GrDirectContext::MakeDirect3D(backendContext);
     return reinterpret_cast<jlong>(instance.release());
 }
-#endif //SK_DIRECT3D 
+#endif //SK_DIRECT3D
+
+#ifdef SK_VULKAN
+#include "include/gpu/ganesh/vk/GrVkDirectContext.h"
+#include "include/gpu/vk/VulkanBackendContext.h"
+#include "include/gpu/vk/VulkanExtensions.h"
+
+extern "C" JNIEXPORT jlong JNICALL Java_org_jetbrains_skia_DirectContextKt__1nMakeVulkan
+  (JNIEnv* env, jclass jclass, jlong instancePtr, jlong physicalDevicePtr, jlong devicePtr, jlong queuePtr, jint graphicsQueueIndex, jlong instanceProcAddr, jlong deviceProcAddr, jint apiVersion) {
+    if (instanceProcAddr == 0 || deviceProcAddr == 0) {
+        return 0;
+    }
+    skgpu::VulkanBackendContext backendContext = {};
+    backendContext.fInstance = reinterpret_cast<VkInstance>(static_cast<uintptr_t>(instancePtr));
+    backendContext.fPhysicalDevice = reinterpret_cast<VkPhysicalDevice>(static_cast<uintptr_t>(physicalDevicePtr));
+    backendContext.fDevice = reinterpret_cast<VkDevice>(static_cast<uintptr_t>(devicePtr));
+    backendContext.fQueue = reinterpret_cast<VkQueue>(static_cast<uintptr_t>(queuePtr));
+    backendContext.fGraphicsQueueIndex = static_cast<uint32_t>(graphicsQueueIndex);
+    backendContext.fGetProc = [instanceProcAddr, deviceProcAddr](const char* name, VkInstance instance, VkDevice device) -> PFN_vkVoidFunction {
+        if (device != VK_NULL_HANDLE) {
+            return reinterpret_cast<PFN_vkGetDeviceProcAddr>(static_cast<uintptr_t>(deviceProcAddr))(device, name);
+        }
+        return reinterpret_cast<PFN_vkGetInstanceProcAddr>(static_cast<uintptr_t>(instanceProcAddr))(instance, name);
+    };
+    backendContext.fMaxAPIVersion = static_cast<uint32_t>(apiVersion);
+
+    skgpu::VulkanExtensions* extensions = new skgpu::VulkanExtensions();
+    extensions->init(backendContext.fGetProc, backendContext.fInstance, backendContext.fPhysicalDevice, 0, nullptr, 0, nullptr);
+    backendContext.fVkExtensions = extensions;
+
+    sk_sp<GrDirectContext> instance = GrDirectContexts::MakeVulkan(backendContext);
+    return reinterpret_cast<jlong>(instance.release());
+}
+#endif // SK_VULKAN
 
 extern "C" JNIEXPORT void JNICALL Java_org_jetbrains_skia_DirectContextKt_DirectContext_1nFlushDefault
   (JNIEnv* env, jclass jclass, jlong ptr) {

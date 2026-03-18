@@ -86,6 +86,8 @@ fun SkikoProjectContext.createCompileJvmBindingsTask(
         OS.Linux -> {
             includeHeadersNonRecursive(jdkHome.resolve("include/linux"))
             includeHeadersNonRecursive(runPkgConfig("dbus-1"))
+            includeHeadersNonRecursive(skiaDir.resolve("include/third_party/vulkan"))
+            includeHeadersNonRecursive(skiaDir.resolve("third_party/externals/vulkan-headers/include"))
             val archFlags = if (targetArch == Arch.Arm64) arrayOf(
                 // Always inline atomics for ARM64 to prevent linking incompatibility issues after updating GCC to 10
                 "-mno-outline-atomics",
@@ -107,6 +109,8 @@ fun SkikoProjectContext.createCompileJvmBindingsTask(
             includeHeadersNonRecursive(skiaDir.resolve("third_party/externals/angle2/include"))
             includeHeadersNonRecursive(skiaDir.resolve("include/gpu"))
             includeHeadersNonRecursive(skiaDir.resolve("src/gpu"))
+            includeHeadersNonRecursive(skiaDir.resolve("include/third_party/vulkan"))
+            includeHeadersNonRecursive(skiaDir.resolve("third_party/externals/vulkan-headers/include"))
             val targetArgs = if (targetArch == Arch.Arm64) arrayOf("/clang:--target=arm64-windows") else arrayOf()
             osFlags = arrayOf(
                 "/nologo",
@@ -130,9 +134,15 @@ fun SkikoProjectContext.createCompileJvmBindingsTask(
         OS.Wasm, OS.IOS, OS.TVOS -> error("Should not reach here")
     }
 
+    val defaultSkiaBaseUrl = "https://github.com/JetBrains/skia-pack/releases/download"
+    val skiaBaseUrl = project.findProperty("dependencies.skia.baseUrl")?.toString() ?: defaultSkiaBaseUrl
+    val vulkanEnabled = skiaBaseUrl != defaultSkiaBaseUrl ||
+        System.getenv("SK_VULKAN") == "1" ||
+        project.findProperty("skiko.vulkan")?.toString() == "true"
+
     flags.set(
         listOf(
-            *skiaPreprocessorFlags(targetOs, buildType),
+            *skiaPreprocessorFlags(targetOs, buildType, vulkanEnabled),
             *osFlags
         )
     )

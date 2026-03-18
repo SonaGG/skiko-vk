@@ -60,6 +60,34 @@ class BackendRenderTarget internal constructor(ptr: NativePointer) : Managed(ptr
             return BackendRenderTarget(_nMakeDirect3D(width, height, texturePtr, format, sampleCnt, levelCnt))
         }
 
+        /**
+         * Creates BackendRenderTarget from a Vulkan image.
+         *
+         * @param width           width of the render target in pixels
+         * @param height          height of the render target in pixels
+         * @param imagePtr        pointer to VkImage handle
+         * @param imageTiling     VkImageTiling enum value
+         * @param imageLayout     VkImageLayout enum value
+         * @param format          VkFormat enum value
+         * @param imageUsageFlags VkImageUsageFlags bitmask
+         * @param sampleCnt       sample count
+         * @param levelCnt        mip level count
+         */
+        fun makeVulkan(
+            width: Int,
+            height: Int,
+            imagePtr: NativePointer,
+            imageTiling: Int,
+            imageLayout: Int,
+            format: Int,
+            imageUsageFlags: Int,
+            sampleCnt: Int,
+            levelCnt: Int
+        ): BackendRenderTarget {
+            Stats.onNativeCall()
+            return BackendRenderTarget(_nMakeVulkan(width, height, imagePtr, imageTiling, imageLayout, format, imageUsageFlags, sampleCnt, levelCnt))
+        }
+
         init {
             staticLoad()
         }
@@ -85,6 +113,19 @@ private external fun _nMakeDirect3D(
     height: Int,
     texturePtr: NativePointer,
     format: Int,
+    sampleCnt: Int,
+    levelCnt: Int
+): NativePointer
+
+@ExternalSymbolName("org_jetbrains_skia_BackendRenderTarget__1nMakeVulkan")
+private external fun _nMakeVulkan(
+    width: Int,
+    height: Int,
+    imagePtr: NativePointer,
+    imageTiling: Int,
+    imageLayout: Int,
+    format: Int,
+    imageUsageFlags: Int,
     sampleCnt: Int,
     levelCnt: Int
 ): NativePointer

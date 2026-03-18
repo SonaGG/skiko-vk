@@ -50,7 +50,7 @@ fun skiaHeadersDirs(skiaDir: File): List<File> =
 fun includeHeadersFlags(headersDirs: List<File>) =
     headersDirs.map { "-I${it.absolutePath}" }.toTypedArray()
 
-fun skiaPreprocessorFlags(os: OS, buildType: SkiaBuildType): Array<String> {
+fun skiaPreprocessorFlags(os: OS, buildType: SkiaBuildType, vulkanEnabled: Boolean = false): Array<String> {
     val base = listOf(
         "-DSK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1",
         "-DSK_FORCE_DISTANCE_FIELD_TEXT=0",
@@ -103,11 +103,11 @@ fun skiaPreprocessorFlags(os: OS, buildType: SkiaBuildType): Array<String> {
             "-DSK_GAMMA_APPLY_TO_A8",
             "-DSK_DIRECT3D",
             "-DSK_ANGLE"
-        )
+        ) + if (vulkanEnabled) listOf("-DSK_VULKAN") else emptyList()
         OS.Linux -> listOf(
             "-DSK_BUILD_FOR_LINUX",
             "-D_GLIBCXX_USE_CXX11_ABI=0"
-        )
+        ) + if (vulkanEnabled) listOf("-DSK_VULKAN") else emptyList()
         OS.Wasm -> listOf(
             "-DSKIKO_WASM",
             "-sSUPPORT_LONGJMP=wasm"

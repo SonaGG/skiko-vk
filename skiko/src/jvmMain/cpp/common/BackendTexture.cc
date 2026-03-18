@@ -43,3 +43,27 @@ extern "C" JNIEXPORT void JNICALL Java_org_jetbrains_skia_BackendTextureKt__1nGL
     GrBackendTexture* backendTexture = reinterpret_cast<GrBackendTexture*>(static_cast<uintptr_t>(backendTexturePtr));
     GrBackendTextures::GLTextureParametersModified(backendTexture);
 }
+
+#ifdef SK_VULKAN
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#include "include/gpu/ganesh/vk/GrVkTypes.h"
+
+extern "C" JNIEXPORT jlong JNICALL Java_org_jetbrains_skia_BackendTextureKt__1nMakeVulkan
+  (JNIEnv* env, jclass jclass, jint width, jint height, jboolean isMipmapped, jlong imagePtr, jint imageTiling, jint imageLayout, jint format, jint imageUsageFlags, jint sampleCnt, jint levelCnt) {
+    GrVkImageInfo vkInfo = {};
+    vkInfo.fImage = reinterpret_cast<VkImage>(static_cast<uintptr_t>(imagePtr));
+    vkInfo.fAlloc = {};
+    vkInfo.fImageTiling = static_cast<VkImageTiling>(imageTiling);
+    vkInfo.fImageLayout = static_cast<VkImageLayout>(imageLayout);
+    vkInfo.fFormat = static_cast<VkFormat>(format);
+    vkInfo.fImageUsageFlags = static_cast<VkImageUsageFlags>(imageUsageFlags);
+    vkInfo.fSampleCount = static_cast<uint32_t>(sampleCnt);
+    vkInfo.fLevelCount = static_cast<uint32_t>(levelCnt);
+
+    // For Vulkan, mipmapping is encoded in fLevelCount; MakeVk has no separate Mipmapped param
+    GrBackendTexture obj = GrBackendTextures::MakeVk(width, height, vkInfo);
+
+    GrBackendTexture* instance = new GrBackendTexture(obj);
+    return reinterpret_cast<jlong>(instance);
+}
+#endif // SK_VULKAN
