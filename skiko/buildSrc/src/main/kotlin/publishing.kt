@@ -356,7 +356,7 @@ private fun SkikoPublishingContext.configureSharedPublicationSkipping() {
     // Disable publish tasks for the kotlinMultiplatform publication (the KMP root metadata artifact).
     // awtRuntimeElements is already skipped by not creating its publication above.
     project.tasks.configureEach {
-        if (name.startsWith("publishKotlinMultiplatform")) {
+        if (name.startsWith("publishKotlinMultiplatform") || name.startsWith("publishJvm")) {
             enabled = false
         }
     }
