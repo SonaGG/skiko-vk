@@ -70,6 +70,7 @@ jobs:
           fi
           ./gradlew --no-daemon --stacktrace \
             -PawtEnabled=true \
+            -Pskiko.publish.skipShared=true \
             -PfrstUsername="${{ secrets.FRST_USERNAME }}" \
             -PfrstPassword="${{ secrets.FRST_PASSWORD }}" \
             $EXTRA_ARGS \
@@ -118,6 +119,7 @@ jobs:
             ./gradlew --no-daemon --stacktrace \
               -PawtEnabled=true \
               -Pskiko.native.linux.enabled=true \
+              -Pskiko.publish.skipShared=true \
               -PfrstUsername="${{ secrets.FRST_USERNAME }}" \
               -PfrstPassword="${{ secrets.FRST_PASSWORD }}" \
               $EXTRA_ARGS \

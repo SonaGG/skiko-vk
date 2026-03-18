@@ -43,6 +43,14 @@ private class SkikoPublishingContext(
     }
 }
 
+/**
+ * When true, shared/metadata publications (awtRuntimeElements, kotlinMultiplatform) are skipped.
+ * Set -Pskiko.publish.skipShared=true on non-primary publishing hosts (Windows, Linux) so that
+ * macOS (the primary host) is the sole publisher of shared publications and 409 conflicts are avoided.
+ */
+private val SkikoPublishingContext.skipSharedPublications: Boolean
+    get() = project.findProperty("skiko.publish.skipShared") == "true"
+
 fun SkikoProjectContext.declarePublications() {
     val ctx = SkikoPublishingContext(this)
     ctx.configurePublishingRepositories()
@@ -55,6 +63,7 @@ fun SkikoProjectContext.declarePublications() {
     ctx.configureAndroidPublication()
 
     ctx.configurePomNames()
+    ctx.configureSharedPublicationSkipping()
 }
 
 private val SkikoPublishingContext.emptySourcesJar
@@ -259,24 +268,26 @@ private fun SkikoPublishingContext.configureAwtRuntimeJarPublication() {
         }
     }
 
-    /* Create the actual publication for this */
-    publications {
-        create("awtRuntimeElements", MavenPublication::class.java) {
-            from(component)
-            pomNameForPublication[name] = "Skiko JVM Runtime"
-            groupId = SkikoArtifacts.groupId
-            artifactId = SkikoArtifacts.jvmRuntimeArtifactId
-            version = skiko.deployVersion
+    /* Create the actual publication for this — only on the primary publishing host */
+    if (!skipSharedPublications) {
+        publications {
+            create("awtRuntimeElements", MavenPublication::class.java) {
+                from(component)
+                pomNameForPublication[name] = "Skiko JVM Runtime"
+                groupId = SkikoArtifacts.groupId
+                artifactId = SkikoArtifacts.jvmRuntimeArtifactId
+                version = skiko.deployVersion
 
-            /*
-            The entire machinery only works with Gradle attributes;
-            therefore, we do not add any dependencies to the maven pom file
-             */
-            pom {
-                withXml {
-                    val dependencyNodes = asElement().getElementsByTagName("dependencies")
-                    for (i in 0 until dependencyNodes.length) {
-                        dependencyNodes.item(i).parentNode.removeChild(dependencyNodes.item(i))
+                /*
+                The entire machinery only works with Gradle attributes;
+                therefore, we do not add any dependencies to the maven pom file
+                 */
+                pom {
+                    withXml {
+                        val dependencyNodes = asElement().getElementsByTagName("dependencies")
+                        for (i in 0 until dependencyNodes.length) {
+                            dependencyNodes.item(i).parentNode.removeChild(dependencyNodes.item(i))
+                        }
                     }
                 }
             }
@@ -338,6 +349,17 @@ private fun SkikoPublishingContext.configureWebPublication() = publications {
 private fun SkikoPublishingContext.configureAndroidPublication() = publications {
     if (!project.supportAndroid) return@publications
     pomNameForPublication["androidRelease"] = "Skiko Android Runtime"
+}
+
+private fun SkikoPublishingContext.configureSharedPublicationSkipping() {
+    if (!skipSharedPublications) return
+    // Disable publish tasks for the kotlinMultiplatform publication (the KMP root metadata artifact).
+    // awtRuntimeElements is already skipped by not creating its publication above.
+    project.tasks.configureEach {
+        if (name.startsWith("publishKotlinMultiplatform")) {
+            enabled = false
+        }
+    }
 }
 
 private fun SkikoPublishingContext.configurePomNames() = publications {
