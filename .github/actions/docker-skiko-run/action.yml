@@ -74,14 +74,15 @@ runs:
       id: cmd
       shell: bash
       run: |
-        CMD="${{ inputs.command }}"
-        if [[ "${{ inputs.virtual-display }}" == "true" ]]; then
-          CMD="Xvfb :1 -screen 0 1920x1080x24 -extension RANDR +extension GLX & export DISPLAY=:1.0 && ${CMD}"
-        fi
         {
-          echo "command<<EOF"
-          echo "${CMD}"
-          echo "EOF"
+          echo "command<<SKIKO_CMD_EOF"
+          if [[ "${{ inputs.virtual-display }}" == "true" ]]; then
+            echo "Xvfb :1 -screen 0 1920x1080x24 -extension RANDR +extension GLX & export DISPLAY=:1.0 &&"
+          fi
+          cat <<'SKIKO_INNER_EOF'
+${{ inputs.command }}
+SKIKO_INNER_EOF
+          echo "SKIKO_CMD_EOF"
         } >> $GITHUB_OUTPUT
 
     - name: 'Run command in container'
