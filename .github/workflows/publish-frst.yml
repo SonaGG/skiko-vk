@@ -77,7 +77,7 @@ jobs:
 
   # ─────────────────────────────────────────────
   # Windows: platform-specific only
-  # Publishes skiko-awt-runtime-windows-x64 and skiko-awt-runtime-windows-arm64.
+  # Publishes skiko-awt-runtime-windows-x64 only (arm64 requires cross-compilation).
   # ─────────────────────────────────────────────
   windows:
     name: 'Windows'
@@ -129,8 +129,7 @@ jobs:
             -PfrstUsername="${{ secrets.FRST_USERNAME }}" \
             -PfrstPassword="${{ secrets.FRST_PASSWORD }}" \
             $EXTRA_ARGS \
-            :skiko:publishSkikoJvmRuntimeWindowsX64PublicationToFrstCloudRepository \
-            :skiko:publishSkikoJvmRuntimeWindowsArm64PublicationToFrstCloudRepository
+            :skiko:publishSkikoJvmRuntimeWindowsX64PublicationToFrstCloudRepository
 
   # ─────────────────────────────────────────────
   # Linux: platform-specific only
@@ -181,7 +180,6 @@ jobs:
               -PfrstPassword="${{ secrets.FRST_PASSWORD }}" \
               $EXTRA_ARGS \
               :skiko:publishSkikoJvmRuntimeLinuxX64PublicationToFrstCloudRepository \
-              :skiko:publishSkikoJvmRuntimeLinuxArm64PublicationToFrstCloudRepository \
               :skiko:publishLinuxX64PublicationToFrstCloudRepository \
               :skiko:publishLinuxArm64PublicationToFrstCloudRepository
 
