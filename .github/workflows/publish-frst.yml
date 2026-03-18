@@ -41,13 +41,6 @@ jobs:
 
       - uses: ./.github/actions/setup-prerequisites
 
-      - name: 'Inject FRST credentials'
-        shell: bash
-        run: |
-          mkdir -p ~/.gradle
-          echo "frstUsername=${{ secrets.FRST_USERNAME }}" >> ~/.gradle/gradle.properties
-          echo "frstPassword=${{ secrets.FRST_PASSWORD }}" >> ~/.gradle/gradle.properties
-
       - name: 'Resolve version'
         id: version
         shell: bash
@@ -77,6 +70,8 @@ jobs:
           fi
           ./gradlew --no-daemon --stacktrace \
             -PawtEnabled=true \
+            -PfrstUsername="${{ secrets.FRST_USERNAME }}" \
+            -PfrstPassword="${{ secrets.FRST_PASSWORD }}" \
             $EXTRA_ARGS \
             :skiko:publishToFrstCloud
 
@@ -90,13 +85,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: ./.github/actions/setup-prerequisites
-
-      - name: 'Inject FRST credentials'
-        shell: bash
-        run: |
-          mkdir -p ~/.gradle
-          echo "frstUsername=${{ secrets.FRST_USERNAME }}" >> ~/.gradle/gradle.properties
-          echo "frstPassword=${{ secrets.FRST_PASSWORD }}" >> ~/.gradle/gradle.properties
 
       - name: 'Resolve version'
         id: version
@@ -130,6 +118,8 @@ jobs:
             ./gradlew --no-daemon --stacktrace \
               -PawtEnabled=true \
               -Pskiko.native.linux.enabled=true \
+              -PfrstUsername="${{ secrets.FRST_USERNAME }}" \
+              -PfrstPassword="${{ secrets.FRST_PASSWORD }}" \
               $EXTRA_ARGS \
               :skiko:publishToFrstCloud
 
@@ -148,13 +138,6 @@ jobs:
           distribution: 'corretto'
 
       - uses: ./.github/actions/setup-prerequisites
-
-      - name: 'Inject FRST credentials'
-        shell: bash
-        run: |
-          mkdir -p ~/.gradle
-          echo "frstUsername=${{ secrets.FRST_USERNAME }}" >> ~/.gradle/gradle.properties
-          echo "frstPassword=${{ secrets.FRST_PASSWORD }}" >> ~/.gradle/gradle.properties
 
       - name: 'Resolve version'
         id: version
@@ -186,6 +169,8 @@ jobs:
           ./gradlew --no-daemon --stacktrace \
             -PawtEnabled=true \
             -Pskiko.native.enabled=true \
+            -PfrstUsername="${{ secrets.FRST_USERNAME }}" \
+            -PfrstPassword="${{ secrets.FRST_PASSWORD }}" \
             $EXTRA_ARGS \
             :skiko:publishToFrstCloud
 
@@ -199,13 +184,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: ./.github/actions/setup-prerequisites
-
-      - name: 'Inject FRST credentials'
-        shell: bash
-        run: |
-          mkdir -p ~/.gradle
-          echo "frstUsername=${{ secrets.FRST_USERNAME }}" >> ~/.gradle/gradle.properties
-          echo "frstPassword=${{ secrets.FRST_PASSWORD }}" >> ~/.gradle/gradle.properties
 
       - name: 'Resolve version'
         id: version
@@ -238,6 +216,8 @@ jobs:
             fi
             ./gradlew --no-daemon --stacktrace \
               -Pskiko.android.enabled=true \
+              -PfrstUsername="${{ secrets.FRST_USERNAME }}" \
+              -PfrstPassword="${{ secrets.FRST_PASSWORD }}" \
               $EXTRA_ARGS \
               :skiko:publishToFrstCloud
 
@@ -251,13 +231,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: ./.github/actions/setup-prerequisites
-
-      - name: 'Inject FRST credentials'
-        shell: bash
-        run: |
-          mkdir -p ~/.gradle
-          echo "frstUsername=${{ secrets.FRST_USERNAME }}" >> ~/.gradle/gradle.properties
-          echo "frstPassword=${{ secrets.FRST_PASSWORD }}" >> ~/.gradle/gradle.properties
 
       - name: 'Resolve version'
         id: version
@@ -290,5 +263,7 @@ jobs:
             fi
             ./gradlew --no-daemon --stacktrace \
               -Pskiko.wasm.enabled=true \
+              -PfrstUsername="${{ secrets.FRST_USERNAME }}" \
+              -PfrstPassword="${{ secrets.FRST_PASSWORD }}" \
               $EXTRA_ARGS \
               :skiko:publishToFrstCloud
