@@ -70,29 +70,22 @@ runs:
         load: true
         should_publish: false
 
-    - name: 'Prepare command'
-      id: cmd
-      shell: bash
-      run: |
-        {
-          echo "command<<SKIKO_CMD_EOF"
-          if [[ "${{ inputs.virtual-display }}" == "true" ]]; then
-            echo "Xvfb :1 -screen 0 1920x1080x24 -extension RANDR +extension GLX & export DISPLAY=:1.0 &&"
-          fi
-          cat <<'SKIKO_INNER_EOF'
-${{ inputs.command }}
-SKIKO_INNER_EOF
-          echo "SKIKO_CMD_EOF"
-        } >> $GITHUB_OUTPUT
-
     - name: 'Run command in container'
       shell: bash
+      env:
+        SKIKO_COMMAND: ${{ inputs.command }}
       run: |
+        SCRIPT=$(mktemp /tmp/skiko-run-XXXXXX.sh)
+        if [[ "${{ inputs.virtual-display }}" == "true" ]]; then
+          printf 'Xvfb :1 -screen 0 1920x1080x24 -extension RANDR +extension GLX &\nexport DISPLAY=:1.0\n' > "$SCRIPT"
+        fi
+        printf '%s\n' "$SKIKO_COMMAND" >> "$SCRIPT"
         docker run --rm \
           -v "${{ github.workspace }}":/workspace \
           -v "${HOME}/.gradle":/gradle-cache \
           -v "${HOME}/.m2":/root/.m2 \
+          -v "$SCRIPT":/skiko-run.sh \
           -e GRADLE_USER_HOME=/gradle-cache \
           -w /workspace/${{ inputs.working_directory }} \
           "ghcr.io/${{ steps.vars.outputs.image_namespace }}/${{ inputs.image_name }}:${{ steps.vars.outputs.tag }}" \
-          bash -c '${{ steps.cmd.outputs.command }}'
+          bash /skiko-run.sh
